@@ -37,6 +37,8 @@ DEBIAN_FRONTEND=sudo noninteractive apt-get install -q -y rpm alien wajig > /dev
 echo "  . Purging previous versions of MarkLogic Server"
 sudo dpkg --purge marklogic > /dev/null 2>&1
 sudo rm -rf /opt/MarkLogic/ > /dev/null 2>&1
+# uncomment this if you want to delete databases and apps
+#sudo rm -rf /var/opt/MarkLogic/ > /dev/null 2>&1
 echo "  . Convert rpm to deb"
 sudo alien --to-deb --verbose -k $1 > /dev/null 2>&1
 deb=`ls | grep marklogic_*.deb`
