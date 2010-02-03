@@ -3,6 +3,9 @@
 # MarkLogic Server (Re)-Installation script for debian 
 # To start with your own MarkLogic Scripts I would advise you to check out
 # $ cat /etc/init.d/MarkLogic 
+#
+# Based on the work of Dave Cassel that is available at:
+#  http://blog.davidcassel.net/2009/12/upgrading-marklogic-server-on-ubuntu/
 # 
 # Copyright (c) 2010 Nuno Job [about.nunojob.com]. All Rights Reserved.
 # 
