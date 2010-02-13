@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # MarkLogic Server (Re)-Installation script for debian 
 # To start with your own MarkLogic Scripts I would advise you to check out
@@ -23,38 +23,67 @@
 # 
 # The use of the Apache License does not indicate that this project is
 # affiliated with the Apache Software Foundation.
-usage="Usage: $0 filename"
+usage="Usage: $0 [OPTION]... FILE
+
+Options:
+  -D Turns debug on"
+
+function debug_echo () {
+  if [ ! -z "$debug" ]; then
+    for line in "$@"
+      do
+	      echo "$(date) - [MarkLogic] $line"
+      done
+  fi }
+
+function debug_exec () {
+  if [ ! -z "$debug" ]; then
+    debug_echo "$1"
+    inst=&$1
+  else
+    inst=&$1 > /dev/null 2>&1
+  fi }
+
+debug=""
+
+while getopts "D" opts
+do case "$opts" in
+  D) debug="1";;
+  h) echo >&2 "$usage"
+     exit 1;;
+  ?) echo >&2 "$usage"
+     exit 1;;
+   esac
+done
+
+shift $(($OPTIND - 1))
 
 if [ "$#" -ne 1 ]; then
  echo "Error: Wrong number of arguments"
  echo $usage
- return
+ return 2
 fi
 
 echo "Installing MarkLogic Server on Debian based Linux distributions"
 echo "  . Installing dependancies"
 DEBIAN_FRONTEND=sudo noninteractive apt-get install -q -y rpm alien wajig > /dev/null 2>&1
 echo "  . Purging previous versions of MarkLogic Server"
-sudo dpkg --purge marklogic > /dev/null 2>&1
-sudo rm -rf /opt/MarkLogic/ > /dev/null 2>&1
+debug_exec "sudo dpkg --purge marklogic"
+debug_exec "sudo rm -rf /opt/MarkLogic"
 # uncomment this if you want to delete databases and apps
-#sudo rm -rf /var/opt/MarkLogic/ > /dev/null 2>&1
+#debug_exec "sudo rm -rf /var/opt/MarkLogic"
 echo "  . Convert rpm to deb"
-sudo alien --to-deb --verbose -k $1 > /dev/null 2>&1
+debug_exec "sudo alien --to-deb --verbose -k ./$1"
 deb=`ls | grep marklogic_*.deb`
 echo "  . Installing deb"
-sudo dpkg -i $deb > /dev/null 2>&1
+debug_exec "sudo dpkg -i $deb"
 echo "  . Ensuring necessary directories exist"
-sudo mkdir /var/lock/subsys > /dev/null 2>&1
+debug_exec "sudo mkdir /var/lock/subsys"
 echo "  . Creating the marklogic command"
-sudo touch /usr/local/bin/marklogic
-echo '#!/bin/sh
-sudo /etc/init.d/MarkLogic $*' | sudo tee /usr/local/bin/marklogic > /dev/null 2>&1
-sudo chmod 755 /usr/local/bin/marklogic > /dev/null 2>&1
-echo "  . Installing this script in /bin. $usage"
-sudo touch /usr/local/bin/$0
-cat $0  | sudo tee /usr/local/bin/$0 > /dev/null 2>&1
-sudo chmod 755 /usr/local/bin/$0 > /dev/null 2>&1
+debug_exec "sudo touch /usr/local/bin/marklogic"
+debug_exec "echo '#!/bin/sh
+sudo /etc/init.d/MarkLogic $*' | sudo tee /usr/local/bin/marklogic"
+debug_exec "sudo chmod 755 /usr/local/bin/marklogic"
 echo "  . Starting MarkLogic"
-marklogic start > /dev/null 2>&1
+debug_exec "marklogic start"
 echo "Installation Complete!"
